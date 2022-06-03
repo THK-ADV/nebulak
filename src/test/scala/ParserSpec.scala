@@ -1,7 +1,8 @@
-import Parser._
-import ParserOps._
 import org.scalatest.EitherValues
 import org.scalatest.wordspec._
+import parser.Parser
+import parser.Parser._
+import parser.ParserOps._
 
 class ParserSpec extends AnyWordSpec with EitherValues {
 

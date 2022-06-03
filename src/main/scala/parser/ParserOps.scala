@@ -1,3 +1,5 @@
+package parser
+
 object ParserOps {
   implicit class P0[A <: Unit](p1: Parser[A]) {
     def take[B](p2: Parser[B]): Parser[B] = p1.zip(p2).map(_._2)

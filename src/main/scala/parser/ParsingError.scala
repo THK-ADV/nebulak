@@ -1,3 +1,5 @@
+package parser
+
 case class ParsingError(expected: String, remainingInput: String)
     extends Throwable {
 

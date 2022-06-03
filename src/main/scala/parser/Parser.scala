@@ -1,8 +1,10 @@
-import Parser.always
+package parser
 
 import scala.collection.mutable.ListBuffer
 
 case class Parser[A](run: String => (Either[ParsingError, A], String)) {
+  import Parser.always
+
   def map[B](f: A => B): Parser[B] = Parser { str =>
     val (a, restA) = run(str)
     a match {
