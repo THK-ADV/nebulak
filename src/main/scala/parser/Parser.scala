@@ -2,11 +2,11 @@ package parser
 
 import scala.collection.mutable.ListBuffer
 
-case class Parser[A](run: String => (Either[ParsingError, A], String)) {
+case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
   import Parser.always
 
   def map[B](f: A => B): Parser[B] = Parser { str =>
-    val (a, restA) = run(str)
+    val (a, restA) = parse(str)
     a match {
       case Right(a) => Right(f(a)) -> restA
       case Left(e)  => Left(ParsingError(e.expected, str)) -> str
@@ -14,10 +14,10 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
   }
 
   def flatMap[B](f: A => Parser[B]): Parser[B] = Parser { str =>
-    val (a, restA) = run(str)
+    val (a, restA) = parse(str)
     a match {
       case Right(a) =>
-        val (b, restB) = f(a).run(restA)
+        val (b, restB) = f(a).parse(restA)
         b match {
           case Right(b) => Right(b) -> restB
           case Left(e)  => Left(ParsingError(e.expected, str)) -> str
@@ -26,12 +26,12 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
     }
   }
 
-  def or[B >: A](p2: => Parser[B]): Parser[B] = Parser { str =>
-    val (a, restA) = run(str)
+  def or[B >: A](that: => Parser[B]): Parser[B] = Parser { str =>
+    val (a, restA) = this.parse(str)
     a match {
       case Right(a) => Right(a) -> restA
       case Left(e1) =>
-        val (b, restB) = p2.run(str)
+        val (b, restB) = that.parse(str)
         b match {
           case Right(b) => Right(b) -> restB
           case Left(e2) =>
@@ -41,11 +41,11 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
     }
   }
 
-  def zip[B](p2: Parser[B]): Parser[(A, B)] = Parser { str =>
-    val (a, restA) = run(str)
+  def zip[B](that: Parser[B]): Parser[(A, B)] = Parser { str =>
+    val (a, restA) = this.parse(str)
     a match {
       case Right(a) =>
-        val (b, restB) = p2.run(restA)
+        val (b, restB) = that.parse(restA)
         b match {
           case Right(b) => Right((a, b)) -> restB
           case Left(e)  => Left(ParsingError(e.expected, str)) -> str
@@ -54,7 +54,7 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
     }
   }
 
-  def skip[B](p2: Parser[B]): Parser[A] = zip(p2).map(_._1)
+  def skip[B](that: Parser[B]): Parser[A] = this.zip(that).map(_._1)
 
   def zeroOrMore(
       separator: Parser[Unit] = always(()),
@@ -66,13 +66,13 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
     var terminatorError = Option.empty[ParsingError]
 
     while (loopError.isEmpty) {
-      val (a, rest) = run(soFar)
+      val (a, rest) = parse(soFar)
       a match {
         case Right(a) =>
           as += a
           soFar = rest
 
-          val (sep, rest2) = separator.run(soFar)
+          val (sep, rest2) = separator.parse(soFar)
           sep match {
             case Right(_) =>
               soFar = rest2
@@ -86,7 +86,7 @@ case class Parser[A](run: String => (Either[ParsingError, A], String)) {
       }
     }
 
-    val (term, rest) = terminator.run(soFar)
+    val (term, rest) = terminator.parse(soFar)
     term match {
       case Right(_) =>
         soFar = rest
@@ -125,7 +125,7 @@ object Parser {
   }
 
   val int: Parser[Int] = Parser { str =>
-    val (sign, str0) = (this.sign or always(1)).run(str)
+    val (sign, str0) = (this.sign or always(1)).parse(str)
     sign match {
       case Right(s) =>
         val prefix = str0.takeWhile(_.isDigit)
@@ -139,7 +139,7 @@ object Parser {
   }
 
   val double: Parser[Double] = Parser { str =>
-    val (sign, str0) = (this.sign or always(1)).run(str)
+    val (sign, str0) = (this.sign or always(1)).parse(str)
     sign match {
       case Right(s) =>
         var decimalCount = 0
@@ -224,7 +224,7 @@ object Parser {
   def optional[A >: Unit](p: Parser[A]): Parser[A] = p or always(())
 
   def not[A >: Unit](p: Parser[A]): Parser[A] = Parser { str =>
-    val (res, _) = p.run(str)
+    val (res, _) = p.parse(str)
     res match {
       case Right(_) => Left(ParsingError("not to succeed", str)) -> str
       case Left(_)  => Right(()) -> str

@@ -1,6 +1,6 @@
 name := "nebulak"
 organization := "de.th-koeln.inf.adv"
-version := "0.1"
+version := "0.3"
 scalaVersion := "2.13.8"
 
 resolvers += "Artima Maven Repository" at "https://repo.artima.com/releases"
@@ -20,5 +20,5 @@ credentials += Credentials(
   "GitHub Package Registry",
   "maven.pkg.github.com",
   "THK-ADV",
-  System.getenv("GITHUB_TOKEN")
+  ""
 )

@@ -1,8 +1,6 @@
-package parser
+package printer
 
-case class ParsingError(expected: String, found: String)
-    extends Throwable {
-
+case class PrintingError(expected: String, actual: String) extends Throwable {
   override def getLocalizedMessage = getMessage
 
   override def getMessage =
@@ -12,6 +10,6 @@ case class ParsingError(expected: String, found: String)
        |Expected:
        |$expected
        |
-       |Found:
-       |$found""".stripMargin
+       |Actual:
+       |$actual""".stripMargin
 }
