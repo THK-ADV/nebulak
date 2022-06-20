@@ -129,4 +129,16 @@ object ParserOps {
           (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q)
       }
   }
+
+  implicit class P17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
+      p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)]
+  ) {
+    def take[R](
+        p2: Parser[R]
+    ): Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] =
+      p1.zip(p2).map {
+        case ((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q), r) =>
+          (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r)
+      }
+  }
 }
