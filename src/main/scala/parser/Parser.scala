@@ -111,6 +111,14 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
             Left(ParsingError(s"minimum of $minimum elements", soFar)) -> str
         }
       }
+
+  def option: Parser[Option[A]] = Parser { str =>
+    val (res, rest) = this.parse(str)
+    res match {
+      case Right(a) => Right(Some(a)) -> rest
+      case Left(_)  => Right(None) -> str
+    }
+  }
 }
 
 object Parser {

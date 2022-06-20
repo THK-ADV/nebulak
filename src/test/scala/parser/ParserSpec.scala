@@ -1,11 +1,11 @@
 package parser
 
-import org.scalatest.EitherValues
 import org.scalatest.wordspec._
+import org.scalatest.{EitherValues, OptionValues}
 import parser.Parser._
 import parser.ParserOps._
 
-class ParserSpec extends AnyWordSpec with EitherValues {
+class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
 
   "A Parser" when {
     "parse a char value" should {
@@ -600,6 +600,16 @@ class ParserSpec extends AnyWordSpec with EitherValues {
       val (res1, rest1) = rest.parse("abc")
       assert(res1.value == "abc")
       assert(rest1.isEmpty)
+    }
+
+    "parse maybe an int" in {
+      val (res1, rest1) = int.option.parse("123 hello")
+      assert(rest1 == " hello")
+      assert(res1.value.value == 123)
+
+      val (res2, rest2) = int.option.parse("hello")
+      assert(rest2 == "hello")
+      assert(res2.value.isEmpty)
     }
   }
 }
