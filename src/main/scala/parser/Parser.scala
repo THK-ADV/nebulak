@@ -1,5 +1,7 @@
 package parser
 
+import parser.Parser.never
+
 import scala.collection.mutable.ListBuffer
 
 case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
@@ -56,53 +58,59 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
 
   def skip[B](that: Parser[B]): Parser[A] = this.zip(that).map(_._1)
 
-  def zeroOrMore(
+  def many(
       separator: Parser[Unit] = always(()),
-      terminator: Parser[Unit] = always(())
-  ): Parser[List[A]] = Parser { str =>
-    val as = ListBuffer[A]()
-    var soFar = str
-    var loopError = Option.empty[ParsingError]
-    var terminatorError = Option.empty[ParsingError]
+      terminator: Parser[Unit] = always(()),
+      minimum: Int = 0
+  ): Parser[List[A]] =
+    if (minimum < 0) never("minimum to be positive")
+    else
+      Parser { str =>
+        val as = ListBuffer[A]()
+        var soFar = str
+        var loopError = Option.empty[ParsingError]
+        var terminatorError = Option.empty[ParsingError]
 
-    while (loopError.isEmpty) {
-      val (a, rest) = parse(soFar)
-      a match {
-        case Right(a) =>
-          as += a
-          soFar = rest
+        while (loopError.isEmpty) {
+          val (a, rest) = parse(soFar)
+          a match {
+            case Right(a) =>
+              as += a
+              soFar = rest
 
-          val (sep, rest2) = separator.parse(soFar)
-          sep match {
-            case Right(_) =>
-              soFar = rest2
+              val (sep, rest2) = separator.parse(soFar)
+              sep match {
+                case Right(_) =>
+                  soFar = rest2
+                case Left(e) =>
+                  loopError = Some(
+                    ParsingError(s"separator: ${e.expected}", soFar)
+                  )
+              }
             case Left(e) =>
-              loopError = Some(
-                ParsingError(s"separator: ${e.expected}", soFar)
-              )
+              loopError = Some(e)
           }
-        case Left(e) =>
-          loopError = Some(e)
+        }
+
+        val (term, rest) = terminator.parse(soFar)
+        term match {
+          case Right(_) =>
+            soFar = rest
+          case Left(e) =>
+            terminatorError = Some(
+              ParsingError(s"terminator: ${e.expected}", soFar)
+            )
+        }
+
+        terminatorError match {
+          case None if as.size >= minimum =>
+            Right(as.toList) -> soFar
+          case Some(e) =>
+            Left(e) -> str
+          case _ =>
+            Left(ParsingError(s"minimum of $minimum elements", soFar)) -> str
+        }
       }
-    }
-
-    val (term, rest) = terminator.parse(soFar)
-    term match {
-      case Right(_) =>
-        soFar = rest
-      case Left(e) =>
-        terminatorError = Some(
-          ParsingError(s"terminator: ${e.expected}", soFar)
-        )
-    }
-
-    terminatorError match {
-      case Some(e) =>
-        Left(e) -> str
-      case None =>
-        Right(as.toList) -> soFar
-    }
-  }
 }
 
 object Parser {

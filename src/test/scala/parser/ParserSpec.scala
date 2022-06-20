@@ -400,7 +400,7 @@ class ParserSpec extends AnyWordSpec with EitherValues {
     }
 
     "parse zero or more parsers with separator" in {
-      val ints = int.zeroOrMore(prefix(","))
+      val ints = int.many(prefix(","))
 
       val (res1, rest1) = ints.parse("1,2,3,4,5")
       assert(res1.value == List(1, 2, 3, 4, 5))
@@ -416,7 +416,7 @@ class ParserSpec extends AnyWordSpec with EitherValues {
     }
 
     "parse zero or more parsers with terminator" in {
-      val ints = int.zeroOrMore(prefix(","), end)
+      val ints = int.many(prefix(","), end)
 
       val (res1, rest1) = ints.parse("1,2,3,4,5")
       assert(res1.value == List(1, 2, 3, 4, 5))
@@ -425,6 +425,44 @@ class ParserSpec extends AnyWordSpec with EitherValues {
       val (res2, rest2) = ints.parse("1,2,3,4,5 ")
       assert(res2.isLeft)
       assert(rest2 == "1,2,3,4,5 ")
+    }
+
+    "parse at least one element" in {
+      val ints = int.many(separator = prefix(","), minimum = 1)
+
+      val (res, rest) = ints.parse("1")
+      assert(rest.isEmpty)
+      assert(res.value == List(1))
+
+      val (res1, rest1) = ints.parse("1,2")
+      assert(rest1.isEmpty)
+      assert(res1.value == List(1, 2))
+
+      val (res2, rest2) = ints.parse("abc")
+      val e = res2.left.value
+      assert(rest2 == "abc")
+      assert(e.expected == "minimum of 1 elements")
+      assert(e.found == "abc")
+    }
+
+    "parse at least two elements" in {
+      val ints = int.many(separator = prefix(","), minimum = 2)
+
+      val (res1, rest1) = ints.parse("1,2")
+      assert(rest1.isEmpty)
+      assert(res1.value == List(1, 2))
+
+      val (res2, rest2) = ints.parse("abc")
+      val e = res2.left.value
+      assert(rest2 == "abc")
+      assert(e.expected == "minimum of 2 elements")
+      assert(e.found == "abc")
+
+      val (res, rest) = ints.parse("1")
+      val e2 = res.left.value
+      assert(rest == "1")
+      assert(e2.expected == "minimum of 2 elements")
+      assert(e2.found == "")
     }
 
     "skip the result of the first parser" in {
