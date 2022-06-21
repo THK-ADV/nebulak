@@ -21,6 +21,9 @@ case class Printer[A](print: (A, String) => Either[PrintingError, String]) {
   def skip(that: Printer[Unit]): Printer[A] =
     this.zip(that).contraMapSuccess(a => (a, ()))
 
+  def skipOpt(that: Option[Printer[Unit]]): Printer[A] =
+    that.fold(this)(that => this.skip(that))
+
   def or(that: => Printer[A]): Printer[A] = Printer { case (a, input) =>
     this.print(a, input) match {
       case Right(newInput) => Right(newInput)

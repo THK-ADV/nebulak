@@ -208,5 +208,10 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       assert(e.expected == "0 or 1 or 2")
       assert(e.actual == "3")
     }
+
+    "skip a printer" in {
+      assert(Printer.int.skipOpt(Some(Printer.prefix("abc"))).print(123, "").value == "123abc")
+      assert(Printer.int.skipOpt(None).print(123, "").value == "123")
+    }
   }
 }
