@@ -104,7 +104,7 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
 
       val error = printer.print("ABC", "").left.value
       assert(error.expected == "123 or abc")
-      assert(error.actual == "ABC")
+      assert(error.found == "ABC")
     }
 
     "print one of many printers" in {
@@ -128,7 +128,7 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
 
       val error = printer.print("+-/*", "").left.value
       assert(error.expected == "123 or abc or ABC")
-      assert(error.actual == "+-/*")
+      assert(error.found == "+-/*")
     }
 
     "print zero or more printer" in {
@@ -183,7 +183,7 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
 
       val e = Printer.literal("Hi").repeat(2).print("Hello", "").left.value
       assert(e.expected == "Hi")
-      assert(e.actual == "Hello")
+      assert(e.found == "Hello")
     }
 
     "map a printer" in {
@@ -206,7 +206,7 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       val e = role.print(3, "").left.value
       println(e)
       assert(e.expected == "0 or 1 or 2")
-      assert(e.actual == "3")
+      assert(e.found == "3")
     }
 
     "skip a printer" in {

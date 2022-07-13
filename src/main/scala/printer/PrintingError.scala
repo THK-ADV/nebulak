@@ -1,6 +1,6 @@
 package printer
 
-case class PrintingError(expected: String, actual: String) extends Throwable {
+case class PrintingError(expected: String, found: String) extends Throwable {
   override def getLocalizedMessage = getMessage
 
   override def getMessage =
@@ -10,6 +10,6 @@ case class PrintingError(expected: String, actual: String) extends Throwable {
        |Expected:
        |$expected
        |
-       |Actual:
-       |$actual""".stripMargin
+       |Found:
+       |$found""".stripMargin
 }

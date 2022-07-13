@@ -11,7 +11,7 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
     val (a, restA) = parse(str)
     a match {
       case Right(a) => Right(f(a)) -> restA
-      case Left(e)  => Left(ParsingError(e.expected, str)) -> str
+      case Left(e)  => Left(e) -> str
     }
   }
 
@@ -22,9 +22,9 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
         val (b, restB) = f(a).parse(restA)
         b match {
           case Right(b) => Right(b) -> restB
-          case Left(e)  => Left(ParsingError(e.expected, str)) -> str
+          case Left(e)  => Left(e) -> str
         }
-      case Left(e) => Left(ParsingError(e.expected, str)) -> str
+      case Left(e) => Left(e) -> str
     }
   }
 
@@ -37,7 +37,7 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
         b match {
           case Right(b) => Right(b) -> restB
           case Left(e2) =>
-            val e = ParsingError(s"${e1.expected} or ${e2.expected}", str)
+            val e = ParsingError(s"${e1.expected} or ${e2.expected}", e2.found)
             Left(e) -> str
         }
     }
@@ -50,9 +50,9 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
         val (b, restB) = that.parse(restA)
         b match {
           case Right(b) => Right((a, b)) -> restB
-          case Left(e)  => Left(ParsingError(e.expected, str)) -> str
+          case Left(e)  => Left(e) -> str
         }
-      case Left(e) => Left(ParsingError(e.expected, str)) -> str
+      case Left(e) => Left(e) -> str
     }
   }
 
@@ -70,26 +70,29 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
         var soFar = str
         var loopError = Option.empty[ParsingError]
         var terminatorError = Option.empty[ParsingError]
+        var firstElement = true
 
         while (loopError.isEmpty) {
+          if (!firstElement) {
+            val (sep, rest2) = separator.parse(soFar)
+            sep match {
+              case Right(_) =>
+                soFar = rest2
+              case Left(e) =>
+                loopError = Some(
+                  ParsingError(s"separator: ${e.expected}", e.found)
+                )
+            }
+          }
           val (a, rest) = parse(soFar)
           a match {
             case Right(a) =>
               as += a
               soFar = rest
-
-              val (sep, rest2) = separator.parse(soFar)
-              sep match {
-                case Right(_) =>
-                  soFar = rest2
-                case Left(e) =>
-                  loopError = Some(
-                    ParsingError(s"separator: ${e.expected}", soFar)
-                  )
-              }
             case Left(e) =>
               loopError = Some(e)
           }
+          firstElement = false
         }
 
         val (term, rest) = terminator.parse(soFar)
@@ -98,7 +101,7 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
             soFar = rest
           case Left(e) =>
             terminatorError = Some(
-              ParsingError(s"terminator: ${e.expected}", soFar)
+              ParsingError(s"terminator: ${e.expected}", e.found)
             )
         }
 
@@ -134,10 +137,15 @@ object Parser {
     else Right(str.head) -> str.tail
   }
 
-  val sign: Parser[Int] = char.flatMap {
-    case '+' => always(1)
-    case '-' => always(-1)
-    case _   => never("+ or -")
+  val sign: Parser[Int] = Parser { str =>
+    str.headOption match {
+      case Some(plus) if plus == '+' =>
+        Right(1) -> str.tail
+      case Some(minus) if minus == '-' =>
+        Right(-1) -> str.tail
+      case _ =>
+        Left(ParsingError("+ or -", str)) -> str
+    }
   }
 
   val int: Parser[Int] = Parser { str =>
@@ -172,8 +180,10 @@ object Parser {
     }
   }
 
-  val whitespace: Parser[Unit] = char
-    .flatMap(c => if (c.isWhitespace) always(()) else never("whitespace"))
+  val whitespace: Parser[Unit] = Parser { str =>
+    if (str.headOption.exists(_.isWhitespace)) Right(()) -> str.tail
+    else Left(ParsingError("whitespace", str)) -> str
+  }
 
   val zeroOrMoreSpaces: Parser[Unit] = Parser { str =>
     Right(()) -> str.dropWhile(_.isWhitespace)

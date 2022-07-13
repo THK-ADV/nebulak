@@ -323,7 +323,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         case Right(_) => fail()
         case Left(e) =>
           assert(e.expected == "even")
-          assert(e.found == "23 Hello")
+          assert(e.found == " Hello")
       }
 
       val (res2, rest2) = even.parse("Hello")
@@ -348,7 +348,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         case Right(_) => fail()
         case Left(e) =>
           assert(e.expected == " €")
-          assert(e.found == "12€")
+          assert(e.found == "€")
       }
 
       val (res2, rest2) = money.parse("12 $")
@@ -357,7 +357,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         case Right(_) => fail()
         case Left(e) =>
           assert(e.expected == " €")
-          assert(e.found == "12 $")
+          assert(e.found == " $")
       }
 
       val (res3, rest3) = money.parse("12")
@@ -366,7 +366,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         case Right(_) => fail()
         case Left(e) =>
           assert(e.expected == " €")
-          assert(e.found == "12")
+          assert(e.found == "")
       }
     }
 
@@ -610,6 +610,106 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       val (res2, rest2) = int.option.parse("hello")
       assert(rest2 == "hello")
       assert(res2.value.isEmpty)
+    }
+
+    "recover with a proper error message when combining parsers" should {
+      "recover when mapping" in {
+        val parser = int.map(identity)
+        val (res1, rest1) = parser.parse("a13")
+        val e1 = res1.left.value
+        assert(e1.expected == "an integer")
+        assert(rest1 == "a13")
+        assert(e1.found == "a13")
+      }
+
+      "recover when flatMapping" in {
+        val parser = int.flatMap(i => literal("a").map(i -> _))
+        val (res1, rest1) = parser.parse("a13")
+        val e1 = res1.left.value
+        assert(e1.expected == "an integer")
+        assert(rest1 == "a13")
+        assert(e1.found == "a13")
+
+        val (res2, rest2) = parser.parse("13 ")
+        val e2 = res2.left.value
+        assert(rest2 == "13 ")
+        assert(e2.expected == "a")
+        assert(e2.found == " ")
+      }
+
+      "recover when skipping" in {
+        val parser = int.skip(whitespace)
+        val (res1, rest1) = parser.parse("a13")
+        val e1 = res1.left.value
+        assert(e1.expected == "an integer")
+        assert(rest1 == "a13")
+        assert(e1.found == "a13")
+
+        val (res2, rest2) = parser.parse("13a")
+        val e2 = res2.left.value
+        assert(rest2 == "13a")
+        assert(e2.expected == "whitespace")
+        assert(e2.found == "a")
+      }
+
+      "recover when zipping" in {
+        val parser = int.zip(literal("a"))
+        val (res1, rest1) = parser.parse("a13")
+        val e1 = res1.left.value
+        assert(e1.expected == "an integer")
+        assert(rest1 == "a13")
+        assert(e1.found == "a13")
+
+        val (res2, rest2) = parser.parse("13 ")
+        val e2 = res2.left.value
+        assert(rest2 == "13 ")
+        assert(e2.expected == "a")
+        assert(e2.found == " ")
+      }
+
+      "recover when parsing with or" in {
+        val p1 = int.skip(literal("a"))
+        val p2 = int.skip(literal("b"))
+        val p = prefix("-").take(p1 or p2)
+        val (res1, rest1) = p.parse("-3c")
+        val e1 = res1.left.value
+        assert(rest1 == "-3c")
+        assert(e1.expected == "a or b")
+        assert(e1.found == "c")
+      }
+
+      "recover when parsing with many" in {
+        val p1 = prefix("-")
+          .skip(int)
+          .take(prefix("a").many())
+        val (res1, rest1) = p1.parse("-aaabc")
+        val e1 = res1.left.value
+        assert(rest1 == "-aaabc")
+        assert(e1.expected == "an integer")
+        assert(e1.found == "aaabc")
+
+        val (res2, rest2) = p1.parse("-3b")
+        assert(rest2 == "b")
+        assert(res2.value.isEmpty)
+
+        val (res3, rest3) = prefix("-")
+          .skip(int)
+          .take(prefix("a").many(minimum = 1))
+          .parse("-3b")
+        val e3 = res3.left.value
+        assert(rest3 == "-3b")
+        assert(e3.expected == "minimum of 1 elements")
+        assert(e3.found == "b")
+
+        val (res4, rest4) = prefix("-")
+          .skip(int)
+          .take(prefix("a").many(terminator = newline))
+          .parse("-3aab")
+        val e4 = res4.left.value
+        assert(rest4 == "-3aab")
+        assert(e4.expected == "terminator: newline")
+        assert(e4.found == "b")
+      }
     }
   }
 }
