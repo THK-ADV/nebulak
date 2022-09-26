@@ -180,6 +180,12 @@ object Parser {
     }
   }
 
+  val boolean: Parser[Boolean] =
+    oneOf(
+      prefix("true").map(_ => true),
+      prefix("false").map(_ => false)
+    )
+
   val whitespace: Parser[Unit] = Parser { str =>
     if (str.headOption.exists(_.isWhitespace)) Right(()) -> str.tail
     else Left(ParsingError("whitespace", str)) -> str

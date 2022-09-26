@@ -204,7 +204,6 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       assert(role.print(2, "").value == "member")
 
       val e = role.print(3, "").left.value
-      println(e)
       assert(e.expected == "0 or 1 or 2")
       assert(e.found == "3")
     }

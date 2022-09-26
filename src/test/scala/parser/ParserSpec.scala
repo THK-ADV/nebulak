@@ -215,6 +215,28 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       }
     }
 
+    "parse a boolean" should {
+      "return true" in {
+        val (res, rest) = boolean.parse("true")
+        assert(res.value)
+        assert(rest.isEmpty)
+      }
+
+      "return false" in {
+        val (res, rest) = boolean.parse("false")
+        assert(!res.value)
+        assert(rest.isEmpty)
+      }
+
+      "fail if not boolean" in {
+        val (res, rest) = boolean.parse("other")
+        val ParsingError(expected, found) = res.left.value
+        assert(expected == "true or false")
+        assert(found == "other")
+        assert(rest == "other")
+      }
+    }
+
     "parse a prefix" should {
       "expect a given prefix in input string" in {
         val (res, rest) = prefix("He").parse("Hello")
