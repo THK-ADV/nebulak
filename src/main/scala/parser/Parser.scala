@@ -115,6 +115,46 @@ case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
         }
       }
 
+  def all(separator: Parser[Unit] = always(())): Parser[List[A]] =
+    Parser { str =>
+      val as = ListBuffer[A]()
+      var soFar = str
+      var loopError = Option.empty[ParsingError]
+      var firstElement = true
+
+      while (loopError.isEmpty && soFar.nonEmpty) {
+        if (!firstElement) {
+          val (sep, rest2) = separator.parse(soFar)
+          sep match {
+            case Right(_) =>
+              soFar = rest2
+            case Left(e) =>
+              loopError = Some(
+                ParsingError(s"separator: ${e.expected}", e.found)
+              )
+          }
+        }
+        if (loopError.isEmpty) {
+          val (a, rest) = parse(soFar)
+          a match {
+            case Right(a) =>
+              as += a
+              soFar = rest
+            case Left(e) =>
+              loopError = Some(e)
+          }
+          firstElement = false
+        }
+      }
+
+      loopError match {
+        case Some(e) =>
+          Left(e) -> str
+        case None =>
+          Right(as.toList) -> soFar
+      }
+    }
+
   def option: Parser[Option[A]] = Parser { str =>
     val (res, rest) = this.parse(str)
     res match {
