@@ -437,6 +437,25 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest3 == ",1,2,,3,4,5")
     }
 
+    "parse all parser" in {
+      val ints = int.all(prefix(","))
+      assert(ints.parse("1")._1.value == List(1))
+      assert(ints.parse("1,2")._1.value == List(1, 2))
+      assert(ints.parse("1,2,3,4")._1.value == List(1, 2, 3, 4))
+
+      val (res1, rest1) = ints.parse("1,2,3,4,a")
+      val ParsingError(e1, f1) = res1.left.value
+      assert(e1 == "an integer")
+      assert(f1 == "a")
+      assert(rest1 == "1,2,3,4,a")
+
+      val (res2, rest2) = ints.parse("1,2;3,4,a")
+      val ParsingError(e2, f2) = res2.left.value
+      assert(e2 == "separator: ,")
+      assert(f1 == "a")
+      assert(rest2 == "1,2;3,4,a")
+    }
+
     "parse zero or more parsers with terminator" in {
       val ints = int.many(prefix(","), end)
 
