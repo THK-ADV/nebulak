@@ -1,6 +1,6 @@
 name := "nebulak"
 organization := "de.th-koeln.inf.adv"
-version := "0.10"
+version := "0.11"
 scalaVersion := "2.13.8"
 
 resolvers += "Artima Maven Repository" at "https://repo.artima.com/releases"
