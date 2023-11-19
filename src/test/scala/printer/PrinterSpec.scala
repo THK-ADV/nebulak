@@ -10,26 +10,47 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
 
   "A Printer Spec" should {
     "print an int parser" in {
-      assert(Printer.int.print(1, "").value == "1")
-      assert(Printer.int.print(-1, "").value == "-1")
-      assert(Printer.int.print(+1, "").value == "1")
+      assert(Printer.int.print(1, new StringBuilder()).value.toString() == "1")
+      assert(
+        Printer.int.print(-1, new StringBuilder()).value.toString() == "-1"
+      )
+      assert(Printer.int.print(+1, new StringBuilder()).value.toString() == "1")
     }
 
     "print a double parser" in {
-      assert(Printer.double.print(1.2, "").value == "1.2")
-      assert(Printer.double.print(-1.2, "").value == "-1.2")
-      assert(Printer.double.print(+1.0, "").value == "1.0")
-      assert(Printer.double.print(0.4, "").value == "0.4")
+      assert(
+        Printer.double.print(1.2, new StringBuilder()).value.toString() == "1.2"
+      )
+      assert(
+        Printer.double
+          .print(-1.2, new StringBuilder())
+          .value
+          .toString() == "-1.2"
+      )
+      assert(
+        Printer.double
+          .print(+1.0, new StringBuilder())
+          .value
+          .toString() == "1.0"
+      )
+      assert(
+        Printer.double.print(0.4, new StringBuilder()).value.toString() == "0.4"
+      )
     }
 
     "print a char parser" in {
-      assert(Printer.char.print('a', "").value == "a")
-      assert(Printer.char.print(' ', "").value == " ")
+      assert(
+        Printer.char.print('a', new StringBuilder()).value.toString() == "a"
+      )
+      assert(
+        Printer.char.print(' ', new StringBuilder()).value.toString() == " "
+      )
     }
 
     "print a prefix string parser" in {
       val input = "Hello"
-      val print = Printer.prefix(input).print((), "").value
+      val print =
+        Printer.prefix(input).print((), new StringBuilder()).value.toString()
       val parse = Parser.prefix(input).parse(print)._1
       assert(print == input)
       assert(parse.isRight)
@@ -41,12 +62,15 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       val print =
         Printer
           .prefix(p)
-          .print(Parser.prefix(p).parse(input)._1.value, "")
+          .print(Parser.prefix(p).parse(input)._1.value, new StringBuilder())
           .value
+          .toString()
       val parse =
         Parser
           .prefix(p)
-          .parse(Printer.prefix(p).print(input, "").value)
+          .parse(
+            Printer.prefix(p).print(input, new StringBuilder()).value.toString()
+          )
           ._1
           .value
       assert(print == parse)
@@ -69,7 +93,9 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
           .skip(Printer.prefix(";"))
 
       assert(parser.parse(input)._1.value == "abc")
-      assert(printer.print("abc", "").value == input)
+      assert(
+        printer.print("abc", new StringBuilder()).value.toString() == input
+      )
     }
 
     "print a literal" in {
@@ -82,12 +108,18 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
 
       assert(
         printer
-          .print(parser.parse("HelloWorld")._1.value, "")
-          .value == "HelloWorld"
+          .print(parser.parse("HelloWorld")._1.value, new StringBuilder())
+          .value
+          .toString() == "HelloWorld"
       )
       assert(
         parser
-          .parse(printer.print(("Hello", "World"), "").value)
+          .parse(
+            printer
+              .print(("Hello", "World"), new StringBuilder())
+              .value
+              .toString()
+          )
           ._1
           .value == ("Hello", "World")
       )
@@ -97,12 +129,32 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       val printer = Printer.literal("123") or Printer.literal("abc")
       val parser = Parser.literal("123") or Parser.literal("abc")
 
-      assert(printer.print(parser.parse("123")._1.value, "").value == "123")
-      assert(printer.print(parser.parse("abc")._1.value, "").value == "abc")
-      assert(parser.parse(printer.print("123", "").value)._1.value == "123")
-      assert(parser.parse(printer.print("abc", "").value)._1.value == "abc")
+      assert(
+        printer
+          .print(parser.parse("123")._1.value, new StringBuilder())
+          .value
+          .toString() == "123"
+      )
+      assert(
+        printer
+          .print(parser.parse("abc")._1.value, new StringBuilder())
+          .value
+          .toString() == "abc"
+      )
+      assert(
+        parser
+          .parse(printer.print("123", new StringBuilder()).value.toString())
+          ._1
+          .value == "123"
+      )
+      assert(
+        parser
+          .parse(printer.print("abc", new StringBuilder()).value.toString())
+          ._1
+          .value == "abc"
+      )
 
-      val error = printer.print("ABC", "").left.value
+      val error = printer.print("ABC", new StringBuilder()).left.value
       assert(error.expected == "123 or abc")
       assert(error.found == "ABC")
     }
@@ -119,14 +171,44 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
         Parser.literal("ABC")
       )
 
-      assert(printer.print(parser.parse("123")._1.value, "").value == "123")
-      assert(printer.print(parser.parse("abc")._1.value, "").value == "abc")
-      assert(printer.print(parser.parse("ABC")._1.value, "").value == "ABC")
-      assert(parser.parse(printer.print("123", "").value)._1.value == "123")
-      assert(parser.parse(printer.print("abc", "").value)._1.value == "abc")
-      assert(parser.parse(printer.print("ABC", "").value)._1.value == "ABC")
+      assert(
+        printer
+          .print(parser.parse("123")._1.value, new StringBuilder())
+          .value
+          .toString() == "123"
+      )
+      assert(
+        printer
+          .print(parser.parse("abc")._1.value, new StringBuilder())
+          .value
+          .toString() == "abc"
+      )
+      assert(
+        printer
+          .print(parser.parse("ABC")._1.value, new StringBuilder())
+          .value
+          .toString() == "ABC"
+      )
+      assert(
+        parser
+          .parse(printer.print("123", new StringBuilder()).value.toString())
+          ._1
+          .value == "123"
+      )
+      assert(
+        parser
+          .parse(printer.print("abc", new StringBuilder()).value.toString())
+          ._1
+          .value == "abc"
+      )
+      assert(
+        parser
+          .parse(printer.print("ABC", new StringBuilder()).value.toString())
+          ._1
+          .value == "ABC"
+      )
 
-      val error = printer.print("+-/*", "").left.value
+      val error = printer.print("+-/*", new StringBuilder()).left.value
       assert(error.expected == "123 or abc or ABC")
       assert(error.found == "+-/*")
     }
@@ -135,14 +217,16 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       assert(
         Printer.int
           .zeroOrMore()
-          .print(List.empty, "")
-          .value == ""
+          .print(List.empty, new StringBuilder())
+          .value
+          .isEmpty
       )
       assert(
         Printer.int
           .zeroOrMore()
-          .print(List(1, 2, 3, 4), "")
-          .value == "1234"
+          .print(List(1, 2, 3, 4), new StringBuilder())
+          .value
+          .toString() == "1234"
       )
     }
 
@@ -150,14 +234,16 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       assert(
         Printer.int
           .zeroOrMore(Printer.prefix(","))
-          .print(List.empty, "")
-          .value == ""
+          .print(List.empty, new StringBuilder())
+          .value
+          .isEmpty
       )
       assert(
         Printer.int
           .zeroOrMore(Printer.prefix(", "))
-          .print(List(1, 2, 3, 4), "")
-          .value == "1, 2, 3, 4"
+          .print(List(1, 2, 3, 4), new StringBuilder())
+          .value
+          .toString() == "1, 2, 3, 4"
       )
     }
 
@@ -165,23 +251,49 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
       assert(
         Printer.int
           .zeroOrMore(Printer.prefix(","), Printer.prefix("."))
-          .print(List.empty, "")
-          .value == "."
+          .print(List.empty, new StringBuilder())
+          .value
+          .toString() == "."
       )
       assert(
         Printer.int
           .zeroOrMore(Printer.prefix(", "), Printer.newline)
-          .print(List(1, 2, 3, 4), "")
-          .value == "1, 2, 3, 4\n"
+          .print(List(1, 2, 3, 4), new StringBuilder())
+          .value
+          .toString() == "1, 2, 3, 4\n"
       )
     }
 
     "repeat a printer several times" in {
-      assert(Printer.whitespace.repeat(2).print((), "").value == "  ")
-      assert(Printer.int.repeat(2).print(1, "").value == "11")
-      assert(Printer.literal("Hi").repeat(2).print("Hi", "").value == "HiHi")
+      assert(
+        Printer.whitespace
+          .repeat(2)
+          .print((), new StringBuilder())
+          .value
+          .toString() == "  "
+      )
+      assert(
+        Printer.int
+          .repeat(2)
+          .print(1, new StringBuilder())
+          .value
+          .toString() == "11"
+      )
+      assert(
+        Printer
+          .literal("Hi")
+          .repeat(2)
+          .print("Hi", new StringBuilder())
+          .value
+          .toString() == "HiHi"
+      )
 
-      val e = Printer.literal("Hi").repeat(2).print("Hello", "").left.value
+      val e = Printer
+        .literal("Hi")
+        .repeat(2)
+        .print("Hello", new StringBuilder())
+        .left
+        .value
       assert(e.expected == "Hi")
       assert(e.found == "Hello")
     }
@@ -199,18 +311,30 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
           .map(_ => 2)
       )
 
-      assert(role.print(0, "").value == "admin")
-      assert(role.print(1, "").value == "guest")
-      assert(role.print(2, "").value == "member")
+      assert(role.print(0, new StringBuilder()).value.toString() == "admin")
+      assert(role.print(1, new StringBuilder()).value.toString() == "guest")
+      assert(role.print(2, new StringBuilder()).value.toString() == "member")
 
-      val e = role.print(3, "").left.value
+      val e = role.print(3, new StringBuilder()).left.value
       assert(e.expected == "0 or 1 or 2")
       assert(e.found == "3")
     }
 
     "skip a printer" in {
-      assert(Printer.int.skipOpt(Some(Printer.prefix("abc"))).print(123, "").value == "123abc")
-      assert(Printer.int.skipOpt(None).print(123, "").value == "123")
+      assert(
+        Printer.int
+          .skipOpt(Some(Printer.prefix("abc")))
+          .print(123, new StringBuilder())
+          .value
+          .toString() == "123abc"
+      )
+      assert(
+        Printer.int
+          .skipOpt(None)
+          .print(123, new StringBuilder())
+          .value
+          .toString() == "123"
+      )
     }
   }
 }

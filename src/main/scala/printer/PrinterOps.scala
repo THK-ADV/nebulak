@@ -1,7 +1,7 @@
 package printer
 
 object PrinterOps {
-  implicit class P0[A >: Unit](p1: Printer[A]) {
+  implicit final class P0[A >: Unit](p1: Printer[A]) {
     def take[B](p2: Printer[B]): Printer[B] =
       p1.zip(p2).contraMapSuccess(b => ((), b))
 
@@ -12,45 +12,51 @@ object PrinterOps {
     }
   }
 
-  implicit class P2[A, B](p1: Printer[(A, B)]) {
+  implicit final class P2[A, B](p1: Printer[(A, B)]) {
     def take[C](p2: Printer[C]): Printer[(A, B, C)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c) => ((a, b), c) }
   }
 
-  implicit class P3[A, B, C](p1: Printer[(A, B, C)]) {
+  implicit final class P3[A, B, C](p1: Printer[(A, B, C)]) {
     def take[D](p2: Printer[D]): Printer[(A, B, C, D)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c, d) => ((a, b, c), d) }
   }
 
-  implicit class P4[A, B, C, D](p1: Printer[(A, B, C, D)]) {
+  implicit final class P4[A, B, C, D](p1: Printer[(A, B, C, D)]) {
     def take[E](p2: Printer[E]): Printer[(A, B, C, D, E)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c, d, e) =>
         ((a, b, c, d), e)
       }
   }
 
-  implicit class P5[A, B, C, D, E](p1: Printer[(A, B, C, D, E)]) {
+  implicit final class P5[A, B, C, D, E](
+      p1: Printer[(A, B, C, D, E)]
+  ) {
     def take[F](p2: Printer[F]): Printer[(A, B, C, D, E, F)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c, d, e, f) =>
         ((a, b, c, d, e), f)
       }
   }
 
-  implicit class P6[A, B, C, D, E, F](p1: Printer[(A, B, C, D, E, F)]) {
+  implicit final class P6[A, B, C, D, E, F](
+      p1: Printer[(A, B, C, D, E, F)]
+  ) {
     def take[G](p2: Printer[G]): Printer[(A, B, C, D, E, F, G)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c, d, e, f, g) =>
         ((a, b, c, d, e, f), g)
       }
   }
 
-  implicit class P7[A, B, C, D, E, F, G](p1: Printer[(A, B, C, D, E, F, G)]) {
+  implicit final class P7[A, B, C, D, E, F, G](
+      p1: Printer[(A, B, C, D, E, F, G)]
+  ) {
     def take[H](p2: Printer[H]): Printer[(A, B, C, D, E, F, G, H)] =
       p1.zip(p2).contraMapSuccess { case (a, b, c, d, e, f, g, h) =>
         ((a, b, c, d, e, f, g), h)
       }
   }
 
-  implicit class P8[A, B, C, D, E, F, G, H](
+  implicit final class P8[A, B, C, D, E, F, G, H](
       p1: Printer[(A, B, C, D, E, F, G, H)]
   ) {
     def take[I](p2: Printer[I]): Printer[(A, B, C, D, E, F, G, H, I)] =
@@ -59,7 +65,7 @@ object PrinterOps {
       }
   }
 
-  implicit class P9[A, B, C, D, E, F, G, H, I](
+  implicit final class P9[A, B, C, D, E, F, G, H, I](
       p1: Printer[(A, B, C, D, E, F, G, H, I)]
   ) {
     def take[J](p2: Printer[J]): Printer[(A, B, C, D, E, F, G, H, I, J)] =
@@ -68,7 +74,7 @@ object PrinterOps {
       }
   }
 
-  implicit class P10[A, B, C, D, E, F, G, H, I, J](
+  implicit final class P10[A, B, C, D, E, F, G, H, I, J](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J)]
   ) {
     def take[K](p2: Printer[K]): Printer[(A, B, C, D, E, F, G, H, I, J, K)] =
@@ -77,7 +83,7 @@ object PrinterOps {
       }
   }
 
-  implicit class P11[A, B, C, D, E, F, G, H, I, J, K](
+  implicit final class P11[A, B, C, D, E, F, G, H, I, J, K](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K)]
   ) {
     def take[L](p2: Printer[L]): Printer[(A, B, C, D, E, F, G, H, I, J, K, L)] =
@@ -86,29 +92,31 @@ object PrinterOps {
       }
   }
 
-  implicit class P12[A, B, C, D, E, F, G, H, I, J, K, L](
+  implicit final class P12[A, B, C, D, E, F, G, H, I, J, K, L](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K, L)]
   ) {
     def take[M](
         p2: Printer[M]
     ): Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M)] =
-      p1.zip(p2).contraMapSuccess { case (a, b, c, d, e, f, g, h, i, j, k, l, m) =>
-        ((a, b, c, d, e, f, g, h, i, j, k, l), m)
+      p1.zip(p2).contraMapSuccess {
+        case (a, b, c, d, e, f, g, h, i, j, k, l, m) =>
+          ((a, b, c, d, e, f, g, h, i, j, k, l), m)
       }
   }
 
-  implicit class P13[A, B, C, D, E, F, G, H, I, J, K, L, M](
+  implicit final class P13[A, B, C, D, E, F, G, H, I, J, K, L, M](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M)]
   ) {
     def take[N](
         p2: Printer[N]
     ): Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] =
-      p1.zip(p2).contraMapSuccess { case (a, b, c, d, e, f, g, h, i, j, k, l, m, n) =>
-        ((a, b, c, d, e, f, g, h, i, j, k, l, m), n)
+      p1.zip(p2).contraMapSuccess {
+        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n) =>
+          ((a, b, c, d, e, f, g, h, i, j, k, l, m), n)
       }
   }
 
-  implicit class P14[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
+  implicit final class P14[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)]
   ) {
     def take[O](
@@ -120,7 +128,7 @@ object PrinterOps {
       }
   }
 
-  implicit class P15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
+  implicit final class P15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)]
   ) {
     def take[P](
@@ -132,7 +140,7 @@ object PrinterOps {
       }
   }
 
-  implicit class P16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
+  implicit final class P16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
       p1: Printer[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)]
   ) {
     def take[Q](

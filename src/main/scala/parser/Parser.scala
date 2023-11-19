@@ -4,7 +4,8 @@ import parser.Parser.never
 
 import scala.collection.mutable.ListBuffer
 
-case class Parser[A](parse: String => (Either[ParsingError, A], String)) {
+case class Parser[A](parse: String => (Either[ParsingError, A], String))
+    extends AnyVal {
   import Parser.always
 
   def map[B](f: A => B): Parser[B] = Parser { str =>

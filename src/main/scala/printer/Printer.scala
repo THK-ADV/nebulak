@@ -2,12 +2,12 @@ package printer
 
 import printer.Printer.always
 
-case class Printer[A](print: (A, String) => Either[PrintingError, String]) {
+case class Printer[A](print: (A, StringBuilder) => Either[PrintingError, StringBuilder]) extends AnyVal {
   def contraMap[B](f: B => Either[Throwable, A]): Printer[B] = Printer {
     case (b, input) =>
       f(b) match {
         case Right(a) => print(a, input)
-        case Left(e)  => Left(PrintingError(e.getMessage, input))
+        case Left(e)  => Left(PrintingError(e.getMessage, input.toString()))
       }
   }
 
@@ -63,7 +63,7 @@ case class Printer[A](print: (A, String) => Either[PrintingError, String]) {
 
     terminator.print((), soFar) match {
       case Right(soFar0) => Right(soFar0)
-      case Left(e) => Left(PrintingError(s"terminator: ${e.expected}", soFar))
+      case Left(e) => Left(PrintingError(s"terminator: ${e.expected}", soFar.toString()))
     }
   }
 
@@ -87,23 +87,23 @@ case class Printer[A](print: (A, String) => Either[PrintingError, String]) {
 object Printer {
 
   val int: Printer[Int] = Printer { case (int, input) =>
-    Right(input + int.toString)
+    Right(input.append(int))
   }
 
   val double: Printer[Double] = Printer { case (double, input) =>
-    Right(input + double.toString)
+    Right(input.append(double))
   }
 
   val char: Printer[Char] = Printer { case (char, input) =>
-    Right(input + char)
+    Right(input.append(char))
   }
 
   val whitespace: Printer[Unit] = Printer { case (_, input) =>
-    Right(input + ' ')
+    Right(input.append(' '))
   }
 
   val newline: Printer[Unit] = Printer { case (_, input) =>
-    Right(input + '\n')
+    Right(input.append('\n'))
   }
 
   def never[A](expected: String = "fail"): Printer[A] = Printer { case (a, _) =>
@@ -115,17 +115,17 @@ object Printer {
   }
 
   def prefix(p: String): Printer[Unit] = Printer { case (_, input) =>
-    Right(input + p)
+    Right(input.append(p))
   }
 
   def literal(lit: String): Printer[String] = Printer { case (output, input) =>
-    if (output.startsWith(lit)) Right(input + lit)
+    if (output.startsWith(lit)) Right(input.append(lit))
     else Left(PrintingError(lit, output))
   }
 
   def prefix(p: Char => Boolean): Printer[String] = Printer {
     case (output, input) =>
-      if (output.forall(p)) Right(input + output)
+      if (output.forall(p)) Right(input.append(output))
       else Left(PrintingError(s"$output to match the prefix", output))
   }
 
