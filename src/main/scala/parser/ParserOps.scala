@@ -1,43 +1,49 @@
 package parser
 
 object ParserOps {
-  implicit class P0[A <: Unit](p1: Parser[A]) {
+  implicit final class P0[A <: Unit](p1: Parser[A]) {
     def take[B](p2: Parser[B]): Parser[B] = p1.zip(p2).map(_._2)
   }
 
-  implicit class P2[A, B](p1: Parser[(A, B)]) {
+  implicit final class P2[A, B](p1: Parser[(A, B)]) {
     def take[C](p2: Parser[C]): Parser[(A, B, C)] =
       p1.zip(p2).map { case ((a, b), c) => (a, b, c) }
   }
 
-  implicit class P3[A, B, C](p1: Parser[(A, B, C)]) {
+  implicit final class P3[A, B, C](p1: Parser[(A, B, C)]) {
     def take[D](p2: Parser[D]): Parser[(A, B, C, D)] =
       p1.zip(p2).map { case ((a, b, c), d) => (a, b, c, d) }
   }
 
-  implicit class P4[A, B, C, D](p1: Parser[(A, B, C, D)]) {
+  implicit final class P4[A, B, C, D](p1: Parser[(A, B, C, D)]) {
     def take[E](p2: Parser[E]): Parser[(A, B, C, D, E)] =
       p1.zip(p2).map { case ((a, b, c, d), e) => (a, b, c, d, e) }
   }
 
-  implicit class P5[A, B, C, D, E](p1: Parser[(A, B, C, D, E)]) {
+  implicit final class P5[A, B, C, D, E](
+      p1: Parser[(A, B, C, D, E)]
+  ) {
     def take[F](p2: Parser[F]): Parser[(A, B, C, D, E, F)] =
       p1.zip(p2).map { case ((a, b, c, d, e), f) => (a, b, c, d, e, f) }
   }
 
-  implicit class P6[A, B, C, D, E, F](p1: Parser[(A, B, C, D, E, F)]) {
+  implicit final class P6[A, B, C, D, E, F](
+      p1: Parser[(A, B, C, D, E, F)]
+  ) {
     def take[G](p2: Parser[G]): Parser[(A, B, C, D, E, F, G)] =
       p1.zip(p2).map { case ((a, b, c, d, e, f), g) => (a, b, c, d, e, f, g) }
   }
 
-  implicit class P7[A, B, C, D, E, F, G](p1: Parser[(A, B, C, D, E, F, G)]) {
+  implicit final class P7[A, B, C, D, E, F, G](
+      p1: Parser[(A, B, C, D, E, F, G)]
+  ) {
     def take[H](p2: Parser[H]): Parser[(A, B, C, D, E, F, G, H)] =
       p1.zip(p2).map { case ((a, b, c, d, e, f, g), h) =>
         (a, b, c, d, e, f, g, h)
       }
   }
 
-  implicit class P8[A, B, C, D, E, F, G, H](
+  implicit final class P8[A, B, C, D, E, F, G, H](
       p1: Parser[(A, B, C, D, E, F, G, H)]
   ) {
     def take[I](p2: Parser[I]): Parser[(A, B, C, D, E, F, G, H, I)] =
@@ -46,7 +52,7 @@ object ParserOps {
       }
   }
 
-  implicit class P9[A, B, C, D, E, F, G, H, I](
+  implicit final class P9[A, B, C, D, E, F, G, H, I](
       p1: Parser[(A, B, C, D, E, F, G, H, I)]
   ) {
     def take[J](p2: Parser[J]): Parser[(A, B, C, D, E, F, G, H, I, J)] =
@@ -55,7 +61,7 @@ object ParserOps {
       }
   }
 
-  implicit class P10[A, B, C, D, E, F, G, H, I, J](
+  implicit final class P10[A, B, C, D, E, F, G, H, I, J](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J)]
   ) {
     def take[K](p2: Parser[K]): Parser[(A, B, C, D, E, F, G, H, I, J, K)] =
@@ -64,7 +70,7 @@ object ParserOps {
       }
   }
 
-  implicit class P11[A, B, C, D, E, F, G, H, I, J, K](
+  implicit final class P11[A, B, C, D, E, F, G, H, I, J, K](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K)]
   ) {
     def take[L](p2: Parser[L]): Parser[(A, B, C, D, E, F, G, H, I, J, K, L)] =
@@ -73,7 +79,7 @@ object ParserOps {
       }
   }
 
-  implicit class P12[A, B, C, D, E, F, G, H, I, J, K, L](
+  implicit final class P12[A, B, C, D, E, F, G, H, I, J, K, L](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L)]
   ) {
     def take[M](
@@ -84,7 +90,7 @@ object ParserOps {
       }
   }
 
-  implicit class P13[A, B, C, D, E, F, G, H, I, J, K, L, M](
+  implicit final class P13[A, B, C, D, E, F, G, H, I, J, K, L, M](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M)]
   ) {
     def take[N](
@@ -95,7 +101,7 @@ object ParserOps {
       }
   }
 
-  implicit class P14[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
+  implicit final class P14[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)]
   ) {
     def take[O](
@@ -106,7 +112,7 @@ object ParserOps {
       }
   }
 
-  implicit class P15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
+  implicit final class P15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)]
   ) {
     def take[P](
@@ -118,7 +124,7 @@ object ParserOps {
       }
   }
 
-  implicit class P16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
+  implicit final class P16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
       p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)]
   ) {
     def take[Q](
@@ -130,8 +136,10 @@ object ParserOps {
       }
   }
 
-  implicit class P17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
-      p1: Parser[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)]
+  implicit final class P17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
+      p1: Parser[
+        (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)
+      ]
   ) {
     def take[R](
         p2: Parser[R]
