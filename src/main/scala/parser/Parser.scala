@@ -303,4 +303,24 @@ object Parser {
       case Left(_)  => Right(()) -> str
     }
   }
+
+  def range(from: String, to: String): Parser[String] =
+    Parser { str =>
+      if (!str.startsWith(from))
+        Left(
+          ParsingError(s"string to start with $from as a lower bound", str)
+        ) -> str
+      else {
+        val start = str.indexOf(from)
+        val end = str.indexOf(to, start)
+        if (end == -1)
+          Left(
+            ParsingError(s"string to contain $to as a upper bound", str)
+          ) -> str
+        else {
+          val res = str.slice(start, end)
+          Right(res) -> str.drop(res.length)
+        }
+      }
+    }
 }

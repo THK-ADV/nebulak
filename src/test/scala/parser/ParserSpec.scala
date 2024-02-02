@@ -752,5 +752,59 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(e4.found == "b")
       }
     }
+
+    "parse a range" should {
+      "parse when the range starts with the lower bound" in {
+        val input =
+          """a: abc
+            |b: def
+            |c: ghi""".stripMargin
+        val (res, rest) = range("a:", "c:").parse(input)
+        assert(res.value == "a: abc\nb: def\n")
+        assert(rest == "c: ghi")
+      }
+
+      "fail when the lower bound is in the middle" in {
+        val input =
+          """a: abc
+            |b: def
+            |c: ghi
+            |d: jkl""".stripMargin
+        val (res, rest) = range("b:", "d:").parse(input)
+        assert(
+          res.left.value.expected == "string to start with b: as a lower bound"
+        )
+        assert(res.left.value.found == input)
+        assert(rest == input)
+      }
+
+      "fail when the upper bound is not found" in {
+        val input =
+          """a: abc
+            |b: def
+            |c: ghi
+            |d: jkl""".stripMargin
+        val (res, rest) = range("a:", "e:").parse(input)
+        assert(
+          res.left.value.expected == "string to contain e: as a upper bound"
+        )
+        assert(res.left.value.found == input)
+        assert(rest == input)
+      }
+
+      "skip a range" in {
+        val input =
+          """a: abc
+            |b: def
+            |c: ghi
+            |d: jkl""".stripMargin
+        val (res, rest) = prefix(_ != '\n')
+          .skip(zeroOrMoreSpaces)
+          .skip(range("b:", "d:"))
+          .parse(input)
+        assert(res.value == "a: abc")
+        assert(rest == "d: jkl")
+      }
+    }
   }
 }
