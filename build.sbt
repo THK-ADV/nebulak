@@ -1,12 +1,12 @@
 name := "nebulak"
 organization := "de.th-koeln.inf.adv"
-version := "0.12"
-scalaVersion := "2.13.8"
+version := "0.13"
+scalaVersion := "3.3.3"
 
 resolvers += "Artima Maven Repository" at "https://repo.artima.com/releases"
 
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.12"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12" % "test"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.19"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test"
 
 publishTo := Some(
   "GitHub <THK-ADV> Apache Maven Packages" at "https://maven.pkg.github.com/THK-ADV/nebulak"
