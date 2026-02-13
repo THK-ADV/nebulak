@@ -1,14 +1,28 @@
 package printer
 
-import org.scalatest.EitherValues
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.EitherValues
 import parser.Parser
-import parser.ParserOps.{P0 => POParser}
-import printer.PrinterOps.{P0 => P0Printer}
+import parser.ParserOps.{ P0 => POParser }
+import printer.PrinterOps.{ P0 => P0Printer }
 
 class PrinterSpec extends AnyWordSpec with EitherValues {
 
   "A Printer Spec" should {
+    "never succeed (Printer.never)" in {
+      val p = Printer.never[Int]("expected number")
+      val e = p.print(42, new StringBuilder()).left.value
+      assert(e.expected == "expected number")
+      assert(e.found == "42")
+    }
+
+    "always succeed without consuming (Printer.always)" in {
+      val p   = Printer.always[String]()
+      val sb  = new StringBuilder("prefix")
+      val res = p.print("anything", sb)
+      assert(res.value.toString == "prefix")
+    }
+
     "print an int parser" in {
       assert(Printer.int.print(1, new StringBuilder()).value.toString() == "1")
       assert(
@@ -57,9 +71,9 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
     }
 
     "print a prefix while parser" in {
-      val input = "Blob, Esq."
+      val input              = "Blob, Esq."
       val p: Char => Boolean = _ != '\"'
-      val print =
+      val print              =
         Printer
           .prefix(p)
           .print(Parser.prefix(p).parse(input)._1.value, new StringBuilder())
@@ -79,7 +93,7 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
     }
 
     "print a zipped printer" in {
-      val input = "key:abc;"
+      val input  = "key:abc;"
       val parser =
         Parser
           .prefix("key:")
@@ -126,8 +140,8 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
     }
 
     "print one or another printer" in {
-      val printer = Printer.literal("123") or Printer.literal("abc")
-      val parser = Parser.literal("123") or Parser.literal("abc")
+      val printer = Printer.literal("123").or(Printer.literal("abc"))
+      val parser  = Parser.literal("123").or(Parser.literal("abc"))
 
       assert(
         printer
@@ -262,6 +276,34 @@ class PrinterSpec extends AnyWordSpec with EitherValues {
           .value
           .toString() == "1, 2, 3, 4\n"
       )
+    }
+
+    "zeroOrMore returns element error when an element fails to print" in {
+      val p = Printer
+        .oneOf(Printer.literal("a"), Printer.literal("b"))
+        .zeroOrMore(Printer.prefix(","), Printer.prefix("."))
+      val sb  = new StringBuilder()
+      val res = p.print(List("a", "x", "b"), sb)
+      assert(res.isLeft)
+      val e = res.left.value
+      assert(e.expected == "a or b")
+      assert(e.found == "x")
+    }
+
+    "contraMap and contraMapSuccess" in {
+      sealed trait T
+      case class A(i: Int)    extends T
+      case class B(s: String) extends T
+      val printerA = Printer.int.contraMapSuccess[A](a => a.i)
+      val printerB = Printer.literal("foo").contraMapSuccess[B](b => b.s)
+      assert(printerA.print(A(42), new StringBuilder()).value.toString == "42")
+      assert(printerB.print(B("foo"), new StringBuilder()).value.toString == "foo")
+
+      val fromEither =
+        Printer.int.contraMap[Either[String, Int]](_.fold(s => Left(new RuntimeException(s)), a => Right(a)))
+      assert(fromEither.print(Right(7), new StringBuilder()).value.toString == "7")
+      val err = fromEither.print(Left("bad"), new StringBuilder()).left.value
+      assert(err.expected.contains("bad"))
     }
 
     "repeat a printer several times" in {

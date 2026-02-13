@@ -1,7 +1,8 @@
 package parser
 
 import org.scalatest.wordspec._
-import org.scalatest.{EitherValues, OptionValues}
+import org.scalatest.EitherValues
+import org.scalatest.OptionValues
 import parser.Parser._
 import parser.ParserOps._
 
@@ -24,7 +25,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest.isEmpty)
         res match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "a char")
             assert(e.found == "")
         }
@@ -32,6 +33,17 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
     }
 
     "parse a sign" should {
+      "fail on empty input" in {
+        val (res, rest) = sign.parse("")
+        assert(rest.isEmpty)
+        res match {
+          case Right(_) => fail()
+          case Left(e)  =>
+            assert(e.expected == "+ or -")
+            assert(e.found == "")
+        }
+      }
+
       "return 1 if the first char is a plus" in {
         val (res, rest) = sign.parse("+a")
         assert(res.value == 1)
@@ -49,7 +61,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest == "ab")
         res match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "+ or -")
             assert(e.found == "ab")
         }
@@ -68,7 +80,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         val (res2, rest2) = whitespace.parse("abc")
         res2 match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "whitespace")
             assert(e.found == "abc")
             assert(rest2 == "abc")
@@ -122,7 +134,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         val (res5, rest5) = newline.parse("abc")
         res5 match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "newline")
             assert(e.found == "abc")
             assert(rest5 == "abc")
@@ -154,7 +166,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest1 == "-Hello")
         res1 match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "an integer")
             assert(e.found == "-Hello")
         }
@@ -163,7 +175,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest2 == "Hello Blob")
         res2 match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "an integer")
             assert(e.found == "Hello Blob")
         }
@@ -229,11 +241,68 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       }
 
       "fail if not boolean" in {
-        val (res, rest) = boolean.parse("other")
+        val (res, rest)                   = boolean.parse("other")
         val ParsingError(expected, found) = res.left.value
         assert(expected == "true or false")
         assert(found == "other")
         assert(rest == "other")
+      }
+    }
+
+    "parse a literal" should {
+      "return the matched string and consume it" in {
+        val (res, rest) = literal("Hello").parse("Hello World")
+        assert(res.value == "Hello")
+        assert(rest == " World")
+
+        val (res1, rest1) = literal("x").parse("x")
+        assert(res1.value == "x")
+        assert(rest1.isEmpty)
+      }
+
+      "fail if the input does not start with the literal" in {
+        val (res, rest) = literal("Hello").parse("Hi")
+        assert(rest == "Hi")
+        res match {
+          case Right(_) => fail()
+          case Left(e)  =>
+            assert(e.expected == "Hello")
+            assert(e.found == "Hi")
+        }
+      }
+    }
+
+    "parse a prefix with predicate" should {
+      "return the longest prefix matching the predicate" in {
+        val (res, rest) = prefix(_.isLetter).parse("abc123")
+        assert(res.value == "abc")
+        assert(rest == "123")
+
+        val (res1, rest1) = prefix(_.isDigit).parse("42 apples")
+        assert(res1.value == "42")
+        assert(rest1 == " apples")
+      }
+
+      "fail if no character matches" in {
+        val (res, rest) = prefix(_.isDigit).parse("abc")
+        assert(rest == "abc")
+        res match {
+          case Right(_) => fail()
+          case Left(e)  =>
+            assert(e.expected == "a given prefix")
+            assert(e.found == "abc")
+        }
+      }
+
+      "fail on empty input" in {
+        val (res, rest) = prefix(_.isLetter).parse("")
+        assert(rest.isEmpty)
+        res match {
+          case Right(_) => fail()
+          case Left(e)  =>
+            assert(e.expected == "a given prefix")
+            assert(e.found == "")
+        }
       }
     }
 
@@ -253,7 +322,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest == "")
         res match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "He")
             assert(e.found == "")
         }
@@ -264,7 +333,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest == "World Hello")
         res match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "He")
             assert(e.found == "World Hello")
         }
@@ -286,7 +355,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest1 == "Hello")
       res1 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "fail")
           assert(e.found == "Hello")
       }
@@ -295,7 +364,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "fail")
           assert(e.found == "")
       }
@@ -323,7 +392,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
         assert(rest3 == "Hello")
         res3 match {
           case Right(_) => fail()
-          case Left(e) =>
+          case Left(e)  =>
             assert(e.expected == "an integer")
             assert(e.found == "Hello")
         }
@@ -343,7 +412,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest1 == "23 Hello")
       res1 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "even")
           assert(e.found == " Hello")
       }
@@ -352,14 +421,14 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "Hello")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "an integer")
           assert(e.found == "Hello")
       }
     }
 
     "zip two parsers together" in {
-      val money = int.skip(prefix(" €"))
+      val money       = int.skip(prefix(" €"))
       val (res, rest) = money.parse("12 €")
       assert(res.value == 12)
       assert(rest.isEmpty)
@@ -368,7 +437,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest1 == "12€")
       res1 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == " €")
           assert(e.found == "€")
       }
@@ -377,7 +446,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "12 $")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == " €")
           assert(e.found == " $")
       }
@@ -386,10 +455,29 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest3 == "12")
       res3 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == " €")
           assert(e.found == "")
       }
+    }
+
+    "oneOf with no parsers fails" in {
+      val p           = oneOf[String]()
+      val (res, rest) = p.parse("x")
+      assert(rest == "x")
+      res match {
+        case Right(_) => fail()
+        case Left(e)  =>
+          assert(e.expected == "one parser")
+          assert(e.found == "x")
+      }
+    }
+
+    "oneOf with single parser is that parser" in {
+      val p           = oneOf(prefix("a"))
+      val (res, rest) = p.parse("abc")
+      assert(res.isRight)
+      assert(rest == "bc")
     }
 
     "take one of many parsers" in {
@@ -415,7 +503,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest4 == "abc")
       res4 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "€ or $ or £")
           assert(e.found == "abc")
       }
@@ -443,13 +531,13 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(ints.parse("1,2")._1.value == List(1, 2))
       assert(ints.parse("1,2,3,4")._1.value == List(1, 2, 3, 4))
 
-      val (res1, rest1) = ints.parse("1,2,3,4,a")
+      val (res1, rest1)        = ints.parse("1,2,3,4,a")
       val ParsingError(e1, f1) = res1.left.value
       assert(e1 == "an integer")
       assert(f1 == "a")
       assert(rest1 == "1,2,3,4,a")
 
-      val (res2, rest2) = ints.parse("1,2;3,4,a")
+      val (res2, rest2)        = ints.parse("1,2;3,4,a")
       val ParsingError(e2, f2) = res2.left.value
       assert(e2 == "separator: ,")
       assert(f1 == "a")
@@ -480,7 +568,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(res1.value == List(1, 2))
 
       val (res2, rest2) = ints.parse("abc")
-      val e = res2.left.value
+      val e             = res2.left.value
       assert(rest2 == "abc")
       assert(e.expected == "minimum of 1 elements")
       assert(e.found == "abc")
@@ -494,16 +582,28 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(res1.value == List(1, 2))
 
       val (res2, rest2) = ints.parse("abc")
-      val e = res2.left.value
+      val e             = res2.left.value
       assert(rest2 == "abc")
       assert(e.expected == "minimum of 2 elements")
       assert(e.found == "abc")
 
       val (res, rest) = ints.parse("1")
-      val e2 = res.left.value
+      val e2          = res.left.value
       assert(rest == "1")
       assert(e2.expected == "minimum of 2 elements")
       assert(e2.found == "")
+    }
+
+    "many with negative minimum fails" in {
+      val ints        = int.many(minimum = -1)
+      val (res, rest) = ints.parse("1,2")
+      assert(rest == "1,2")
+      res match {
+        case Right(_) => fail()
+        case Left(e)  =>
+          assert(e.expected == "minimum to be positive")
+          assert(e.found == "1,2")
+      }
     }
 
     "skip the result of the first parser" in {
@@ -527,7 +627,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "abc: def")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == " : ")
           assert(e.found == "abc: def")
       }
@@ -544,14 +644,14 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "abcdef")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == ",")
           assert(e.found == "abcdef")
       }
     }
 
     "parse one or another" in {
-      val aOrB = prefix("a") or prefix("b")
+      val aOrB = prefix("a").or(prefix("b"))
 
       val (res1, rest1) = aOrB.parse("abc")
       assert(res1.isRight)
@@ -565,7 +665,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest3 == "cab")
       res3 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "a or b")
           assert(e.found == "cab")
       }
@@ -580,7 +680,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest2 == "abc")
       res2 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "end of input")
           assert(e.found == "abc")
       }
@@ -589,7 +689,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest3 == "a")
       res3 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "end of input")
           assert(e.found == "a")
       }
@@ -598,7 +698,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest4 == " ")
       res4 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "end of input")
           assert(e.found == " ")
       }
@@ -631,7 +731,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
       assert(rest3 == ".abc")
       res3 match {
         case Right(_) => fail()
-        case Left(e) =>
+        case Left(e)  =>
           assert(e.expected == "not to succeed")
           assert(e.found == ".abc")
       }
@@ -655,65 +755,65 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
 
     "recover with a proper error message when combining parsers" should {
       "recover when mapping" in {
-        val parser = int.map(identity)
+        val parser        = int.map(identity)
         val (res1, rest1) = parser.parse("a13")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(e1.expected == "an integer")
         assert(rest1 == "a13")
         assert(e1.found == "a13")
       }
 
       "recover when flatMapping" in {
-        val parser = int.flatMap(i => literal("a").map(i -> _))
+        val parser        = int.flatMap(i => literal("a").map(i -> _))
         val (res1, rest1) = parser.parse("a13")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(e1.expected == "an integer")
         assert(rest1 == "a13")
         assert(e1.found == "a13")
 
         val (res2, rest2) = parser.parse("13 ")
-        val e2 = res2.left.value
+        val e2            = res2.left.value
         assert(rest2 == "13 ")
         assert(e2.expected == "a")
         assert(e2.found == " ")
       }
 
       "recover when skipping" in {
-        val parser = int.skip(whitespace)
+        val parser        = int.skip(whitespace)
         val (res1, rest1) = parser.parse("a13")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(e1.expected == "an integer")
         assert(rest1 == "a13")
         assert(e1.found == "a13")
 
         val (res2, rest2) = parser.parse("13a")
-        val e2 = res2.left.value
+        val e2            = res2.left.value
         assert(rest2 == "13a")
         assert(e2.expected == "whitespace")
         assert(e2.found == "a")
       }
 
       "recover when zipping" in {
-        val parser = int.zip(literal("a"))
+        val parser        = int.zip(literal("a"))
         val (res1, rest1) = parser.parse("a13")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(e1.expected == "an integer")
         assert(rest1 == "a13")
         assert(e1.found == "a13")
 
         val (res2, rest2) = parser.parse("13 ")
-        val e2 = res2.left.value
+        val e2            = res2.left.value
         assert(rest2 == "13 ")
         assert(e2.expected == "a")
         assert(e2.found == " ")
       }
 
       "recover when parsing with or" in {
-        val p1 = int.skip(literal("a"))
-        val p2 = int.skip(literal("b"))
-        val p = prefix("-").take(p1 or p2)
+        val p1            = int.skip(literal("a"))
+        val p2            = int.skip(literal("b"))
+        val p             = prefix("-").take(p1.or(p2))
         val (res1, rest1) = p.parse("-3c")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(rest1 == "-3c")
         assert(e1.expected == "a or b")
         assert(e1.found == "c")
@@ -724,7 +824,7 @@ class ParserSpec extends AnyWordSpec with EitherValues with OptionValues {
           .skip(int)
           .take(prefix("a").many())
         val (res1, rest1) = p1.parse("-aaabc")
-        val e1 = res1.left.value
+        val e1            = res1.left.value
         assert(rest1 == "-aaabc")
         assert(e1.expected == "an integer")
         assert(e1.found == "aaabc")
